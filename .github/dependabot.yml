@@ -1,0 +1,31 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    ignore:
+      - dependency-name: "threatcode-cli"
+      - dependency-name: "pythreatcode"
+      - dependency-name: "pythreatcode-backend-carbonblack"
+      - dependency-name: "pythreatcode-backend-cortexxdr"
+      - dependency-name: "pythreatcode-backend-elasticsearch"
+      - dependency-name: "pythreatcode-backend-opensearch"
+      - dependency-name: "pythreatcode-backend-qradar"
+      - dependency-name: "pythreatcode-backend-qradar-aql"
+      - dependency-name: "pythreatcode-backend-sentinelone"
+      - dependency-name: "pythreatcode-backend-sentinelone-pq"
+      - dependency-name: "pythreatcode-backend-splunk"
+      - dependency-name: "pythreatcode-backend-insightidr"
+      - dependency-name: "pythreatcode-pipeline-crowdstrike"
+      - dependency-name: "pythreatcode-pipeline-sysmon"
+      - dependency-name: "pythreatcode-pipeline-windows"
