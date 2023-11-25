@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>threatcode - threatcode rule converter</title>
+  <!-- Tailwind UI -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- tom-select -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tom-select/2.2.2/css/tom-select.min.css" integrity="sha512-BrNXB6PRnf32ZqstFiYQT/L7aVZ45FGojXbBx8nybK/NBhxFQPHsr36jH11I2YoUaA5UFqTRF14xt3VVMWfCOg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- PrismJS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-atom-dark.min.css" integrity="sha512-GZPS1oCebjx8g/ZkrTTvWirW+4wDkzIsilUQPXcZzuDpDzoH5brM2AojiFjo6ObIWeM68ZDostvdjaS9MNYCTg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- custom threatcode css -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PR1SJ2WGE6"></script>
+  <!-- favicon -->
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-PR1SJ2WGE6');
+  </script>
+</head>
+
+<body class="bg-threatcode-dark">
+  <nav class="p-6">
+    <div class="flex justify-between">
+      <div class="self-center">
+        <p class="text-threatcode-blue text-3xl font-bold">threatcode</p>
+        <p class="text-white text-xl font-bold">threatcode rule converter</p>
+      </div>
+      <a href="https://github.com/threatcode/threatconverter" class="text-white self-center mr-4">
+        <i class="fab fa-github text-5xl"></i>
+      </a>
+    </div>
+    <hr class="mt-6 h-px border-0 bg-threatcode-blue" />
+  </nav>
+
+  <div class="bg-threatcode-dark">
+    <div id="form-section" class="mx-10 py-2">
+      <div class="grid lg:grid-cols-2 gap-4">
+        <div class="lg:col-span-1 self-center">
+          <div class="grid md:grid-cols-1 lg:grid-cols-3 gap-4 sm:p-4">
+            <div class="lg:px-1">
+              <label for="select-backend" class="text-threatcode-blue">Backend:</label>
+              <select id="select-backend" class="select-threatcode" autocomplete="off">
+                {%- for name, backend in backends.items() -%}
+                <option value="{{ name }}">{{ name }}</option>
+                {%- endfor -%}
+              </select>
+            </div>
+            <div class="lg:px-1">
+              <label for="select-format" class="text-threatcode-blue">Format:</label>
+              <select id="select-format" class="select-threatcode" autocomplete="off">
+                {%- for format in formats -%}
+                <option hidden backend="{{ format.backend }}" value="{{ format.name }}">{{ format.name }}</option>
+                {%- endfor -%}
+              </select>
+            </div>
+            <div class="lg:px-1">
+              <label for="select-pipeline" class="text-threatcode-blue">Pipeline:</label>
+              <select id="select-pipeline" class="select-threatcode" name="pipeline[]" placeholder="select pipelines..." multiple autocomplete="off">
+                {%- for name, pipeline in pipelines -%}
+                <option hidden value="{{ name }}" backend="{{ pipeline.backends }}">{{ name }}</option>
+                {%- endfor -%}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="lg:col-span-1 lg:px-2">
+          <label for="cli-code" class="text-threatcode-blue">CLI:</label>
+          <pre class="border border-threatcode-blue"><code id="cli-code" class="language-bash text-sm">run this cli command for the same result</code></pre>
+        </div>
+      </div>
+    </div>
+    <div id="content-section" class="mx-10 mt-5">
+      <div id="rule-grid" class="grid lg:grid-cols-2 gap-4">
+        <div id="rule-section" class="lg:col-span-1 self-start lg:px-2">
+          <p class="text-lg text-white font-bold">
+            <span class="px-3 py-2 border-x border-t rounded border-threatcode-blue">
+              <i id="rule-share-btn" class="fas fa-share-nodes px-1 py-0 my-0 text-sm text-threatcode-blue cursor-pointer"></i>
+            </span>
+            <span id="tab-rule" class="px-3 py-2 ml-1 border-x border-t rounded border-threatcode-blue bg-threatcode-blue text-threatcode-dark cursor-pointer file-tab">
+              rule.yml
+            </span>
+            <span id="tab-pipeline" class="px-3 py-2 ml-1 border-x border-t rounded border-threatcode-blue cursor-pointer file-tab">
+              pipeline.yml
+            </span>
+          </p>
+          <pre onclick="focusSelect('rule-code')" class="border border-threatcode-blue tab-code"><code id="rule-code" class="language-yaml text-sm">title: Suspicious SYSTEM User Process Creation
+id: 2617e7ed-adb7-40ba-b0f3-8f9945fe6c09
+status: test
+description: Detects a suspicious process creation as SYSTEM user (suspicious program or command line parameter)
+references:
+    - Internal Research
+    - https://tools.thehacker.recipes/mimikatz/modules
+author: Florian Roth (rule), David ANDRE (additional keywords)
+date: 2021/12/20
+modified: 2022/04/27
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        IntegrityLevel: System
+        User|contains: # covers many language settings
+            - 'AUTHORI'
+            - 'AUTORI'
+    selection_special:
+        - Image|endswith:
+            - '\calc.exe'
+            - '\wscript.exe'
+            - '\cscript.exe'
+            - '\hh.exe'
+            - '\mshta.exe'
+            - '\forfiles.exe'
+            - '\ping.exe'
+        - CommandLine|contains:
+            # - 'sc stop ' # stops a system service # causes FPs
+            - ' -NoP '  # Often used in malicious PowerShell commands
+            - ' -W Hidden '  # Often used in malicious PowerShell commands
+            - ' -decode '  # Used with certutil
+            - ' /decode '  # Used with certutil
+            - ' /urlcache '  # Used with certutil
+            - ' -urlcache '  # Used with certutil
+            - ' -e* JAB'  # PowerShell encoded commands
+            - ' -e* SUVYI'  # PowerShell encoded commands
+            - ' -e* SQBFAFgA'  # PowerShell encoded commands
+            - ' -e* aWV4I'  # PowerShell encoded commands
+            - ' -e* IAB'  # PowerShell ncoded commands
+            - ' -e* PAA'  # PowerShell encoded commands
+            - ' -e* aQBlAHgA'  # PowerShell encoded commands
+            - 'vssadmin delete shadows'  # Ransomware
+            - 'reg SAVE HKLM'  # save registry SAM - syskey extraction
+            - ' -ma '  # ProcDump
+            - 'Microsoft\Windows\CurrentVersion\Run'  # Run key in command line - often in combination with REG ADD
+            - '.downloadstring('  # PowerShell download command
+            - '.downloadfile('  # PowerShell download command
+            - ' /ticket:'  # Rubeus
+            - 'dpapi::'     #Mimikatz
+            - 'event::clear'        #Mimikatz
+            - 'event::drop'     #Mimikatz
+            - 'id::modify'      #Mimikatz
+            - 'kerberos::'       #Mimikatz
+            - 'lsadump::'      #Mimikatz
+            - 'misc::'     #Mimikatz
+            - 'privilege::'       #Mimikatz
+            - 'rpc::'      #Mimikatz
+            - 'sekurlsa::'       #Mimikatz
+            - 'sid::'        #Mimikatz
+            - 'token::'      #Mimikatz
+            - 'vault::cred'     #Mimikatz
+            - 'vault::list'     #Mimikatz
+            - ' p::d '  # Mimikatz
+            - ';iex('  # PowerShell IEX
+            - 'MiniDump'  # Process dumping method apart from procdump
+            - 'net user '
+    condition: all of selection*
+falsepositives:
+    - Administrative activity
+    - Scripts and administrative tools used in the monitored environment
+    - Monitoring activity
+level: high</code></pre>
+          <pre onclick="focusSelect('pipeline-code')" class="border border-threatcode-blue tab-code hidden"><code id="pipeline-code" class="language-yaml text-sm"></code></pre>
+        </div>
+        <div class="lg:col-span-1 self-start lg:px-2">
+          <p class="text-lg text-white font-bold">
+            <span class="px-3 py-2 border-x border-t rounded border-threatcode-blue">
+              <i id="query-copy-btn" class="fas fa-copy px-1 py-0 my-0 text-sm text-threatcode-blue cursor-pointer"></i>
+              query
+            </span>
+          </p>
+          <pre class="border border-threatcode-blue">
+            <code id="query-code" class="language-splunk-spl text-sm">the generated query should be displayed here :)</code></pre>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- tom-select -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tom-select/2.2.2/js/tom-select.complete.js" integrity="sha512-KfTOBVJv8qnV1b+2tsbTLepS7+RAgmVV0Odk6cj1eHxbR8WFX99gwIWOutwFAUlsve3FaGG3VxoPWWLRnehX1w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- PrismJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js" integrity="sha512-RDQSW3KoqJMiX0L/UBgwBmH1EmRYp8LBOiLaA8rBHIy+7OGP/7Gxg8vbt8wG4ZYd29P0Fnoq6+LOytCqx3cyoQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-yaml.min.js" integrity="sha512-6O/PZimM3TD1NN3yrazePA4AbZrPcwt1QCGJrVY7WoHDJROZFc9TlBvIKMe+QfqgcslW4lQeBzNJEJvIMC8WhA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-splunk-spl.min.js" integrity="sha512-RLhcqVEXOdbZPCJ8YG5fZDRIK3nXiS6erMtnzLyaKzS17H7mRi/9a1o+s2TM2XlWk4Nk7E579LyL63R7nUlrgQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-bash.min.js" integrity="sha512-ZqfG//sXQwAA7DOArFJyMmZQ3knKe+0ft3tPQZPvDPJR04IatmhVO5pTazVV+fLVDYSy28PhoBeUj5wxGRiGAA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- threatcode custom js -->
+  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+  <!-- CodeJar init -->
+  <script type="module">
+    import {
+      CodeJar
+    } from 'https://medv.io/codejar/codejar.js'
+    import {
+      withLineNumbers
+    } from 'https://medv.io/codejar/linenumbers.js'
+    
+    window.threatcodeJar = CodeJar(document.querySelector('#rule-code'), el => Prism.highlightElement(el))
+    threatcodeJar.onUpdate(threatcodeRule => {
+      if (threatcodeRule.length > 0) {
+        convert(threatcodeRule, pipelineJar.toString());
+      }
+    })
+
+    window.pipelineJar = CodeJar(document.querySelector('#pipeline-code'), el => Prism.highlightElement(el))
+    pipelineJar.onUpdate(pipelineYml => {
+      generateCli();
+      if (pipelineYml.length > 0) {
+        convert(threatcodeJar.toString(), pipelineYml);
+      }
+    })
+  </script>
+
+</body>
+</html>
